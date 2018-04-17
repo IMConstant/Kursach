@@ -45,10 +45,10 @@ struct Color {
 
 class BMP_File {
 public:
-	BMP_File(const char *_file_name = NULL);
+    explicit BMP_File(const char *_file_name = NULL);
 	~BMP_File();
 
-	File_Info getFileInfo() { return file_info; }
+    File_Info getFileInfo() const { return file_info; }
 
 	void create(const char *_file_name);
 	void open(const char *_file_name);
@@ -57,13 +57,12 @@ public:
 	void writeImage();
     void RGBChange(int offset, char value);
 private:
-	Color **file_buffer;
+    mutable Color **file_buffer;
 	File_Info file_info;
 
 	char *file_name;
 
 	void readImage(std::ifstream &fin);
-    int checkBorder(int crd);
 };
 
 #endif

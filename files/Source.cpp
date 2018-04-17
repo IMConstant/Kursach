@@ -7,7 +7,7 @@
 #include "Header.h"
 
 BMP_File::BMP_File(const char *_file_name) {
-	file_buffer = NULL;
+    file_buffer = NULL;
 	memset(&file_info, 0, sizeof(File_Info));
 	file_name = (char *)_file_name;
 
@@ -20,13 +20,16 @@ BMP_File::BMP_File(const char *_file_name) {
 }
 
 BMP_File::~BMP_File() {
-	for (int i = 0; i < file_info.height; i++)
-		delete file_buffer[i];
+    for (int i = 0; i < file_info.height; i++)
+            delete file_buffer[i];
 
-	delete file_buffer;
+    delete file_buffer;
 }
 
 void BMP_File::drawRect(COORD coord, int side, int width, Color color, bool pour, Color pour_color) {
+    if (side < 0 || width < 0 || side - 2 < width * 2)
+        return;
+
 	for (int i = width; i >= -width; i--) {
 		for (int j = -i; j < side + i; j++) {
             file_buffer[GET_YBORDER(coord.Y - i)][GET_XBORDER(coord.X + j)] =
@@ -68,7 +71,6 @@ void BMP_File::ImageRotation(COORD lcoord, COORD rcoord, int angle) {
 	for (int i = 0; i < h; i++) {
 		for (int j = 0; j < l; j++) {
 			buffer[i][j] = file_buffer[lcoord.Y + i][lcoord.X + j];
-			*((char *)&buffer[i][j] + 2) = 9;
 			file_buffer[lcoord.Y + i][lcoord.X + j] = Color{ rand() % 256, rand() % 256, rand() % 256 };
 		}
 	}

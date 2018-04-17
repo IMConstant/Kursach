@@ -1,7 +1,19 @@
-#include <stdlib.h>
-#include <string.h>
-#include <ctime>
+#define DRAW_FILE_SQUARE(file, init_square) file.drawRect(init_square.lcoord, \
+                                                init_square.side, init_square.width, \
+                                                init_square.color, init_square.pour, \
+                                                init_square.pour_color);
+
+#define CHANGE_FILE_RGB(file, init_chrgb) file.RGBChange(init_chrgb.offset, init_chrgb.value);
+
+#define ROTATE_FILE_IMAGE(file, init_rotation) file.ImageRotation(init_rotation.lcoord, init_rotation.rcoord, \
+                                                    init_rotation.angle);
+
 #include <getopt.h>
+#include <string.h>
+#include <algorithm>
+#include <iostream>
+#include <functional>
+#include <cstdlib>
 
 #include "Header.h"
 
@@ -17,15 +29,11 @@ struct __argflags {
 } argflags;
 
 struct __init_chrgb {
-    bool need_call;
-
     int offset;
     int value;
 } init_chrgb;
 
 struct __init_square {
-    bool need_call;
-
     Color color;
     Color pour_color;
 
@@ -37,8 +45,6 @@ struct __init_square {
 } init_square;
 
 struct __init_rotation {
-    bool need_call;
-
     COORD lcoord;
     COORD rcoord;
 
@@ -46,12 +52,13 @@ struct __init_rotation {
 } init_rotation;
 
 struct Stand_Colors{
-    const char *colors[4] = { "blue", "green", "red", "yellow" };
+    const char *colors[5] = { "blue", "green", "red", "yellow", "white" };
 
-    Color byte_colors[4] = { {255, 0, 0},
+    Color byte_colors[5] = { {255, 0, 0},
                            {0, 255, 0},
                            {0, 0, 255},
-                           {0, 255, 255} };
+                           {0, 255, 255},
+                           {255, 255, 255}};
 } stand_colors;
 
 int ParseArgs(int _argc, char *_argv[], char *_file_name) {
@@ -92,7 +99,6 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                     }
 
                     argflags.square_flag = 1;
-                    init_square.need_call = 1;
 
                     break;
                 case 'r': //rotation
@@ -102,7 +108,6 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                     }
 
                     argflags.rotation_flag = 1;
-                    init_rotation.need_call = 1;
 
                     break;
                 case 'c': //chrgb
@@ -112,13 +117,14 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                     }
 
                     argflags.chrgb_flag = 1;
-                    init_chrgb.need_call = 1;
 
                     break;
                 default:
                     std::cout << "You should read documentation, idiot\n";
                     return 0;
             }
+
+            continue;
         }
 
         if (argflags.coordflags) {
@@ -146,6 +152,9 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                     argflags.coordflags = 0;
                     end = 0;
             }
+
+            if (argflags.coordflags)
+                continue;
         }
 
         switch(res) {
@@ -294,18 +303,18 @@ int main(int argc, char *argv[]) {
 
     BMP_File file(file_name);
 
-    if (init_square.need_call)
-        file.drawRect(init_square.lcoord, init_square.side,
-                      init_square.width, init_square.color,
-                      init_square.pour, init_square.pour_color);
+    if (argflags.square_flag)
+        DRAW_FILE_SQUARE(file, init_square);
 
-    if (init_chrgb.need_call)
-        file.RGBChange(init_chrgb.offset, init_chrgb.value);
+    if (argflags.chrgb_flag)
+        CHANGE_FILE_RGB(file, init_chrgb);
 
-    if (init_rotation.need_call)
-        file.ImageRotation(init_rotation.lcoord, init_rotation.rcoord, init_rotation.angle);
+    if (argflags.rotation_flag)
+        ROTATE_FILE_IMAGE(file, init_rotation);
 
-	file.writeImage();
+    std::cout << "gagaga";
+
+    file.writeImage();
 
 	return 0;
 }
