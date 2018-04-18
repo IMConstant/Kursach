@@ -120,7 +120,7 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
 
                     break;
                 default:
-                    std::cout << "You should read documentation, idiot\n";
+                    std::cout << "You should read documentation\n";
                     return 0;
             }
 
@@ -290,7 +290,7 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
 
                 break;
             default:
-                std::cout << "omg dcp\n";
+                std::cout << "You should read documentation\n";
                 return 0;
         }
 
