@@ -44,6 +44,8 @@ struct Color {
 #pragma pack(pop)
 
 class BMP_File {
+    friend int isValidCoord(BMP_File *file, COORD lc, COORD rc);
+    friend int isValidCoord(BMP_File *file, COORD crd);
 public:
     explicit BMP_File(const char *_file_name = NULL);
 	~BMP_File();

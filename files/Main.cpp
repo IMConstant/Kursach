@@ -172,11 +172,17 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
 
                 if (!color) {
                     std::cout << "can't find that color\n";
-                    break;
+                    return 0;
                 }
 
-                if (argflags.chrgb_flag)
+                if (argflags.chrgb_flag) {
+                    if (offset > 2) {
+                        std::cout << "can't find that color\n";
+                        return 0;
+                    }
+
                     init_chrgb.offset = offset;
+                }
 
                 if (argflags.square_flag)
                     init_square.color = *color;
@@ -283,6 +289,9 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                 strcpy(_file_name, optarg);
 
                 break;
+            default:
+                std::cout << "omg dcp\n";
+                return 0;
         }
 
     }
@@ -297,7 +306,7 @@ int main(int argc, char *argv[]) {
     strcpy(file_name, "new.bmp");
 
     if (!ParseArgs(argc, argv, file_name)) {
-        std::cout << ":(";
+        std::cout << ":(\n";
         return 0;
     }
 
@@ -311,8 +320,6 @@ int main(int argc, char *argv[]) {
 
     if (argflags.rotation_flag)
         ROTATE_FILE_IMAGE(file, init_rotation);
-
-    std::cout << "gagaga";
 
     file.writeImage();
 

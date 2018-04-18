@@ -6,6 +6,22 @@
 
 #include "Header.h"
 
+int isValidCoord(BMP_File *file, COORD lc, COORD rc) {
+    if (lc.X >= rc.X || lc.Y >= rc.Y)
+        return 0;
+
+    if (lc.X < 0 || lc.Y < 0 || rc.X < 0 || rc.Y < 0 || rc.X > file->file_info.width ||
+        rc.Y > file->file_info.height || lc.X > file->file_info.width ||
+        lc.Y > file->file_info.height)
+        return 0;
+}
+
+int isValidCoord(BMP_File *file, COORD crd) {
+    if (crd.X < 0 || crd.Y < 0 || crd.X > file->file_info.width ||
+        crd.Y > file->file_info.height)
+        return 0;
+}
+
 BMP_File::BMP_File(const char *_file_name) {
     file_buffer = NULL;
 	memset(&file_info, 0, sizeof(File_Info));
@@ -28,6 +44,9 @@ BMP_File::~BMP_File() {
 
 void BMP_File::drawRect(COORD coord, int side, int width, Color color, bool pour, Color pour_color) {
     if (side < 0 || width < 0 || side - 2 < width * 2)
+        return;
+
+    if (!isValidCoord(this, coord))
         return;
 
 	for (int i = width; i >= -width; i--) {
@@ -58,6 +77,9 @@ void BMP_File::drawRect(COORD coord, int side, int width, Color color, bool pour
 }
 
 void BMP_File::ImageRotation(COORD lcoord, COORD rcoord, int angle) {
+    if (!isValidCoord(this, lcoord, rcoord))
+        return;
+
 	int l = rcoord.X - lcoord.X, h = rcoord.Y - lcoord.Y;
 
 	COORD new_lcoord = { lcoord.X + l / 2 - h / 2, lcoord.Y + h / 2 - l / 2 };
