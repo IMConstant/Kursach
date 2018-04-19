@@ -22,26 +22,24 @@ struct __argflags {
         return square_flag | chrgb_flag | rotation_flag;
     }
 
-    bool square_flag;
-    bool chrgb_flag;
-    bool rotation_flag;
-    bool coordflags;
+    bool square_flag : 1;
+    bool chrgb_flag : 1;
+    bool rotation_flag : 1;
+    bool coordflags : 1;
 } argflags;
 
 struct __init_chrgb {
-    int offset;
-    int value;
+    unsigned int offset;
+    unsigned int value;
 } init_chrgb;
 
 struct __init_square {
-    Color color;
-    Color pour_color;
-
-    COORD lcoord;
-
-    int side;
-    int width;
-    int pour;
+    __rgb          color;
+    __rgb          pour_color;
+    COORD          lcoord;
+    unsigned int   side;
+    unsigned int   width;
+    unsigned int   pour;
 } init_square;
 
 struct __init_rotation {
@@ -54,7 +52,7 @@ struct __init_rotation {
 struct Stand_Colors{
     const char *colors[5] = { "blue", "green", "red", "yellow", "white" };
 
-    Color byte_colors[5] = { {255, 0, 0},
+    __rgb byte_colors[5] = { {255, 0, 0},
                            {0, 255, 0},
                            {0, 0, 255},
                            {0, 255, 255},
@@ -62,8 +60,9 @@ struct Stand_Colors{
 } stand_colors;
 
 int ParseArgs(int _argc, char *_argv[], char *_file_name) {
-    int res, index, value, angle, side, width, pour, offset, end = 0;
-    Color *color = NULL;
+    int res, index;
+    unsigned int value, angle, side, width, offset, end = 0;
+    __rgb *color = NULL;
 
     argflags = { 0, 0, 0, 0 };
     memset(&init_square, 0, sizeof(__init_square));
@@ -93,38 +92,24 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
         if (!argflags.isActive()) {
             switch(res) {
                 case 's': //square
-                    if (argflags.isActive()) {
-                        std::cout << "Error! Another flag is active\n";
-                        return 0;
-                    }
-
                     argflags.square_flag = 1;
 
                     break;
                 case 'r': //rotation
-                    if (argflags.isActive()) {
-                        std::cout << "Error! Another flag is active\n";
-                        return 0;
-                    }
-
                     argflags.rotation_flag = 1;
 
                     break;
                 case 'c': //chrgb
-                    if (argflags.isActive()) {
-                        std::cout << "Error! Another flag is active\n";
-                        return 0;
-                    }
-
                     argflags.chrgb_flag = 1;
 
                     break;
                 default:
+                    if (res == 'o' || res == 'h')
+                        break;
+
                     std::cout << "You should read documentation\n";
                     return 0;
             }
-
-            continue;
         }
 
         if (argflags.coordflags) {
@@ -286,6 +271,11 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
 
                 break;
             case 'o':
+                if (strlen(optarg) > 255) {
+                    std::cout << "File name error!\n";
+                    return 0;
+                }
+
                 strcpy(_file_name, optarg);
 
                 break;
@@ -311,6 +301,7 @@ int main(int argc, char *argv[]) {
     }
 
     BMP_File file(file_name);
+    file();
 
     if (argflags.square_flag)
         DRAW_FILE_SQUARE(file, init_square);
