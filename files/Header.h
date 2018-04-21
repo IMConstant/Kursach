@@ -6,7 +6,7 @@
 #include <iostream>
 #include <fstream>
 
-typedef char byte;
+typedef unsigned char byte;
 
 #pragma pack(push, 1)
 
@@ -36,9 +36,9 @@ struct COORD {
 };
 
 struct __rgb {
-    byte blue;
-    byte green;
-    byte red;
+    byte b;
+    byte g;
+    byte r;
 };
 
 #pragma pack(pop)
@@ -47,8 +47,8 @@ class BMP_File {
     friend int isValidCoord(BMP_File *file, COORD lc, COORD rc);
     friend int isValidCoord(BMP_File *file, COORD crd);
 public:
-    explicit BMP_File(const char *_file_name = NULL);
-	~BMP_File();
+    explicit BMP_File(const char *_file_name = nullptr);
+    ~BMP_File();
     void operator()() {
         std::cout << "signature     " << std::hex << file_info.signature    << " " << std::dec << file_info.signature    << std::endl;
         std::cout << "file_size     " << std::hex << file_info.file_size    << " " << std::dec << file_info.file_size    << std::endl;
@@ -68,19 +68,19 @@ public:
 
     File_Info getFileInfo() const { return file_info; }
 
-	void create(const char *_file_name);
-	void open(const char *_file_name);
+    void create(const char *_file_name);
+    void open(const char *_file_name);
     void drawRect(COORD coord, int side, int width, __rgb color, bool pour, __rgb pour_color);
-	void ImageRotation(COORD lcoord, COORD rcoord, int angle);
-	void writeImage();
-    void RGBChange(int offset, char value);
+    void ImageRotation(COORD lcoord, COORD rcoord, int angle);
+    void writeImage();
+    void RGBChange(int offset, byte value);
 private:
     mutable __rgb **file_buffer;
     File_Info       file_info;
 
     char           *file_name;
 
-	void readImage(std::ifstream &fin);
+    void readImage(std::ifstream &fin);
 };
 
 #endif

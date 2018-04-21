@@ -9,7 +9,7 @@
                                                     init_rotation.angle);
 
 #include <getopt.h>
-#include <string.h>
+#include <cstring>
 #include <algorithm>
 #include <iostream>
 #include <functional>
@@ -19,13 +19,13 @@
 
 struct __argflags {
     bool isActive() {
-        return square_flag | chrgb_flag | rotation_flag;
+        return square_flag || chrgb_flag || rotation_flag;
     }
 
-    bool square_flag : 1;
-    bool chrgb_flag : 1;
+    bool square_flag   : 1;
+    bool chrgb_flag    : 1;
     bool rotation_flag : 1;
-    bool coordflags : 1;
+    bool coordflags    : 1;
 } argflags;
 
 struct __init_chrgb {
@@ -43,50 +43,49 @@ struct __init_square {
 } init_square;
 
 struct __init_rotation {
-    COORD lcoord;
-    COORD rcoord;
-
-    int angle;
+    COORD        lcoord;
+    COORD        rcoord;
+    unsigned int angle;
 } init_rotation;
 
 struct Stand_Colors{
     const char *colors[5] = { "blue", "green", "red", "yellow", "white" };
 
     __rgb byte_colors[5] = { {255, 0, 0},
-                           {0, 255, 0},
-                           {0, 0, 255},
-                           {0, 255, 255},
-                           {255, 255, 255}};
+                             {0, 255, 0},
+                             {0, 0, 255},
+                             {0, 255, 255},
+                             {255, 255, 255}};
 } stand_colors;
 
 int ParseArgs(int _argc, char *_argv[], char *_file_name) {
     int res, index;
     unsigned int value, angle, side, width, offset, end = 0;
-    __rgb *color = NULL;
+    __rgb *color = nullptr;
 
     argflags = { 0, 0, 0, 0 };
     memset(&init_square, 0, sizeof(__init_square));
     memset(&init_chrgb, 0, sizeof(__init_chrgb));
     memset(&init_rotation, 0, sizeof(__init_rotation));
-    
+
     const char *short_args = "scrbeC:S:p:P:x:y:v:a:w:o:";
     const struct option long_args[] = {
-            {"square",no_argument,NULL,'s'},
-            {"chrgb",no_argument,NULL,'c'},
-            {"rotation",no_argument,NULL,'r'},
-            {"begin",no_argument,NULL,'b'},
-            {"end",no_argument,NULL,'e'},
-            {"angle",required_argument,NULL,'a'},
-            {"color",required_argument,NULL,'C'},
-            {"side",required_argument,NULL,'S'},
-            {"width",required_argument,NULL,'w'},
-            {"pour",no_argument,NULL,'p'},
-            {"pour_color",required_argument,NULL,'P'},
-            {"x",required_argument,NULL,'x'},
-            {"y",required_argument,NULL,'y'},
-            {"value",required_argument,NULL,'v'},
-            {NULL,0,NULL,0}
-        };
+            {"square",no_argument,nullptr,'s'},
+            {"chrgb",no_argument,nullptr,'c'},
+            {"rotation",no_argument, nullptr,'r'},
+            {"begin",no_argument,nullptr,'b'},
+            {"end",no_argument,nullptr,'e'},
+            {"angle",required_argument,nullptr,'a'},
+            {"color",required_argument,nullptr,'C'},
+            {"side",required_argument,nullptr,'S'},
+            {"width",required_argument,nullptr,'w'},
+            {"pour",no_argument,nullptr,'p'},
+            {"pour_color",required_argument,nullptr,'P'},
+            {"x",required_argument,nullptr,'x'},
+            {"y",required_argument,nullptr,'y'},
+            {"value",required_argument,nullptr,'v'},
+            {nullptr,0,nullptr,0}
+    };
 
     while ((res = getopt_long(_argc, _argv, short_args, long_args, &index)) != -1) {
         if (!argflags.isActive()) {
@@ -110,27 +109,29 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                     std::cout << "You should read documentation\n";
                     return 0;
             }
+
+            continue;
         }
 
         if (argflags.coordflags) {
             switch(res) {
                 case 'x':
                     if (end)
-                        init_rotation.rcoord.X = atoi(optarg);
+                        init_rotation.rcoord.X = (unsigned)strtol(optarg, nullptr, 10);
                     else if (argflags.rotation_flag)
-                        init_rotation.lcoord.X = atoi(optarg);
+                        init_rotation.lcoord.X = (unsigned)strtol(optarg, nullptr, 10);
                     else {
-                        init_square.lcoord.X = atoi(optarg);
+                        init_square.lcoord.X = (unsigned)strtol(optarg, nullptr, 10);
                     }
 
                     break;
                 case 'y':
                     if (end)
-                        init_rotation.rcoord.Y = atoi(optarg);
+                        init_rotation.rcoord.Y = (unsigned)strtol(optarg, nullptr, 10);
                     else if (argflags.rotation_flag)
-                        init_rotation.lcoord.Y = atoi(optarg);
+                        init_rotation.lcoord.Y = (unsigned)strtol(optarg, nullptr, 10);
                     else
-                        init_square.lcoord.Y = atoi(optarg);
+                        init_square.lcoord.Y = (unsigned)strtol(optarg, nullptr, 10);
 
                     break;
                 default:
@@ -179,7 +180,7 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                     return 0;
                 }
 
-                value = atoi(optarg);
+                value = (unsigned)strtol(optarg, nullptr, 10);
 
                 if (value > 255 || (optarg[0] != '0' && value == 0)) {
                     std::cout << "Value Error!\n";
@@ -214,7 +215,7 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                     return 0;
                 }
 
-                angle = ((atoi(optarg) / 90) % 4) * 90;
+                angle = (unsigned)(((strtol(optarg, nullptr, 10) / 90) % 4) * 90);
 
                 init_rotation.angle = angle;
 
@@ -225,7 +226,7 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                     return 0;
                 }
 
-                side = atoi(optarg);
+                side = (unsigned)strtol(optarg, nullptr, 10);
 
                 init_square.side = side;
 
@@ -236,7 +237,7 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                     return 0;
                 }
 
-                width = atoi(optarg);
+                width = (unsigned)strtol(optarg, nullptr, 10);
 
                 init_square.width = width;
 
@@ -288,9 +289,9 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
 }
 
 int main(int argc, char *argv[]) {
-	setlocale(LC_ALL, "rus");
+    setlocale(LC_ALL, "rus");
 
-    srand(time(NULL));
+    srand((unsigned)time(nullptr));
 
     char file_name[256] = { 0 };
     strcpy(file_name, "new.bmp");
@@ -314,5 +315,5 @@ int main(int argc, char *argv[]) {
 
     file.writeImage();
 
-	return 0;
+    return 0;
 }
