@@ -26,6 +26,23 @@ struct File_Info {
     unsigned int   gres;
     unsigned int   vres;
     unsigned long  mus;
+
+    void operator()() {
+        std::cout << "signature     " << std::hex << signature    << " " << std::dec << signature    << std::endl;
+        std::cout << "file_size     " << std::hex << file_size    << " " << std::dec << file_size    << std::endl;
+        std::cout << "reserved      " << std::hex << reserved     << " " << std::dec << reserved     << std::endl;
+        std::cout << "image_offset  " << std::hex << image_offset << " " << std::dec << image_offset << std::endl;
+        std::cout << "header_size   " << std::hex << header_size  << " " << std::dec << header_size  << std::endl;
+        std::cout << "width         " << std::hex << width        << " " << std::dec << width        << std::endl;
+        std::cout << "height        " << std::hex << height       << " " << std::dec << height       << std::endl;
+        std::cout << "unit          " << std::hex << unit         << " " << std::dec << unit         << std::endl;
+        std::cout << "color_depth   " << std::hex << color_depth  << " " << std::dec << color_depth  << std::endl;
+        std::cout << "compression   " << std::hex << compression  << " " << std::dec << compression  << std::endl;
+        std::cout << "image_size    " << std::hex << image_size   << " " << std::dec << image_size   << std::endl;
+        std::cout << "gres          " << std::hex << gres         << " " << std::dec << gres         << std::endl;
+        std::cout << "vres          " << std::hex << vres         << " " << std::dec << vres         << std::endl;
+        std::cout << "mus           " << std::hex << mus          << " " << std::dec << mus          << std::endl;
+    }
 };
 
 static char mass[3] = { 0 };
@@ -43,28 +60,29 @@ struct __rgb {
 
 #pragma pack(pop)
 
+static const char *help_info = "Выбор основного действия:\n"
+                               "-s, --square\tрисование квадрата\n"
+                               "-r, --rotation\tвращение части изображения\n"
+                               "-c, --chrgb\tизменение компонента цвета всего изображения\n\n"
+                               "Параментры функций:\n"
+                               "-S, --side\tдлина стороны квадрата\n"
+                               "-w, --width\tтолщина линии\n"
+                               "-C, --color\tустанавливает цвет кисти. Пример: [ff00ff]\n"
+                               "-p, --pour\tустанавливает заливку квадрата\n"
+                               "-P, --pour-color\tцвет заливки\n"
+                               "-b, --begin\tначальные координаты области\n"
+                               "-e, --end\tконечные координаты области\n"
+                               "-x\tкоордината по горизонтали\n"
+                               "-y\tкоордината по вертикали\n"
+                               "-v, --value\tзначение компоненты цвета\n"
+                               "-a, --angle\tугол поворота изображения\n";
+
 class BMP_File {
     friend int isValidCoord(BMP_File *file, COORD lc, COORD rc);
     friend int isValidCoord(BMP_File *file, COORD crd);
 public:
     explicit BMP_File(const char *_file_name = nullptr);
     ~BMP_File();
-    void operator()() {
-        std::cout << "signature     " << std::hex << file_info.signature    << " " << std::dec << file_info.signature    << std::endl;
-        std::cout << "file_size     " << std::hex << file_info.file_size    << " " << std::dec << file_info.file_size    << std::endl;
-        std::cout << "reserved      " << std::hex << file_info.reserved     << " " << std::dec << file_info.reserved     << std::endl;
-        std::cout << "image_offset  " << std::hex << file_info.image_offset << " " << std::dec << file_info.image_offset << std::endl;
-        std::cout << "header_size   " << std::hex << file_info.header_size  << " " << std::dec << file_info.header_size  << std::endl;
-        std::cout << "width         " << std::hex << file_info.width        << " " << std::dec << file_info.width        << std::endl;
-        std::cout << "height        " << std::hex << file_info.height       << " " << std::dec << file_info.height       << std::endl;
-        std::cout << "unit          " << std::hex << file_info.unit         << " " << std::dec << file_info.unit         << std::endl;
-        std::cout << "color_depth   " << std::hex << file_info.color_depth  << " " << std::dec << file_info.color_depth  << std::endl;
-        std::cout << "compression   " << std::hex << file_info.compression  << " " << std::dec << file_info.compression  << std::endl;
-        std::cout << "image_size    " << std::hex << file_info.image_size   << " " << std::dec << file_info.image_size   << std::endl;
-        std::cout << "gres          " << std::hex << file_info.gres         << " " << std::dec << file_info.gres         << std::endl;
-        std::cout << "vres          " << std::hex << file_info.vres         << " " << std::dec << file_info.vres         << std::endl;
-        std::cout << "mus           " << std::hex << file_info.mus          << " " << std::dec << file_info.mus          << std::endl;
-    }
 
     File_Info getFileInfo() const { return file_info; }
 

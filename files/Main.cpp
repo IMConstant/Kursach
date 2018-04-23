@@ -26,6 +26,7 @@ struct __argflags {
     bool chrgb_flag    : 1;
     bool rotation_flag : 1;
     bool coordflags    : 1;
+    bool help_flag     : 1;
 } argflags;
 
 struct __init_chrgb {
@@ -48,27 +49,18 @@ struct __init_rotation {
     unsigned int angle;
 } init_rotation;
 
-struct Stand_Colors{
-    const char *colors[5] = { "blue", "green", "red", "yellow", "white" };
-
-    __rgb byte_colors[5] = { {255, 0, 0},
-                             {0, 255, 0},
-                             {0, 0, 255},
-                             {0, 255, 255},
-                             {255, 255, 255}};
-} stand_colors;
-
 int ParseArgs(int _argc, char *_argv[], char *_file_name) {
     int res, index;
     unsigned int value, angle, side, width, offset, end = 0;
-    __rgb *color = nullptr;
+    char buffer[3] = { 0 };
+    const char *_colors[] = { "blue", "red", "green" };
 
-    argflags = { 0, 0, 0, 0 };
+    argflags = { 0, 0, 0, 0, 1 };
     memset(&init_square, 0, sizeof(__init_square));
     memset(&init_chrgb, 0, sizeof(__init_chrgb));
     memset(&init_rotation, 0, sizeof(__init_rotation));
 
-    const char *short_args = "scrbeC:S:p:P:x:y:v:a:w:o:";
+    const char *short_args = "scrbeC:S:p:P:x:y:v:a:w:o:h";
     const struct option long_args[] = {
             {"square",no_argument,nullptr,'s'},
             {"chrgb",no_argument,nullptr,'c'},
@@ -80,14 +72,17 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
             {"side",required_argument,nullptr,'S'},
             {"width",required_argument,nullptr,'w'},
             {"pour",no_argument,nullptr,'p'},
-            {"pour_color",required_argument,nullptr,'P'},
+            {"pour-color",required_argument,nullptr,'P'},
             {"x",required_argument,nullptr,'x'},
             {"y",required_argument,nullptr,'y'},
             {"value",required_argument,nullptr,'v'},
+            {"help", no_argument, nullptr, 'h'},
             {nullptr,0,nullptr,0}
     };
 
     while ((res = getopt_long(_argc, _argv, short_args, long_args, &index)) != -1) {
+        argflags.help_flag = 0;
+
         if (!argflags.isActive()) {
             switch(res) {
                 case 's': //square
@@ -150,28 +145,35 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                     return 0;
                 }
 
-                for (offset = 0; offset < sizeof(stand_colors.colors) / sizeof(char *); offset++)
-                    if (strcmp(optarg, stand_colors.colors[offset]) == 0) {
-                        color = stand_colors.byte_colors + offset;
-                        break;
+                if (argflags.square_flag) {
+                    if (strlen(optarg) != 6) {
+                        std::cout << "color error!";
+                        return 0;
                     }
 
-                if (!color) {
-                    std::cout << "can't find that color\n";
-                    return 0;
+                    for (int i = 0; i < 3; i++) {
+                        strncpy(buffer, optarg + i * 2, 2);
+                        *((byte *)&init_square.color + i) = (byte)(strtol(buffer, nullptr, 16));
+
+                        if (errno == ERANGE) {
+                            std::cout << "color error!";
+                            return 0;
+                        }
+                    }
                 }
 
                 if (argflags.chrgb_flag) {
-                    if (offset > 2) {
-                        std::cout << "can't find that color\n";
+                    for (offset = 0; offset < 3; offset++)
+                        if (strcmp(optarg, _colors[offset]) == 0)
+                            break;
+
+                    if (offset == 3) {
+                        std::cout << "color error!";
                         return 0;
                     }
 
                     init_chrgb.offset = offset;
                 }
-
-                if (argflags.square_flag)
-                    init_square.color = *color;
 
                 break;
             case 'v':  //value
@@ -257,18 +259,20 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                     return 0;
                 }
 
-                for (int i = 0; i < sizeof(stand_colors.colors); i++)
-                    if (strcmp(optarg, stand_colors.colors[i]) == 0) {
-                        color = stand_colors.byte_colors + i;
-                        break;
-                    }
-
-                if (!color) {
-                    std::cout << "can't find that color\n";
+                if (strlen(optarg) != 6) {
+                    std::cout << "color error!";
                     return 0;
                 }
 
-                init_square.pour_color = *color;
+                for (int i = 0; i < 3; i++) {
+                    strncpy(buffer, optarg + i * 2, 2);
+                    *((byte *)&init_square.pour_color + i) = (byte)(strtol(buffer, nullptr, 16));
+
+                    if (errno == ERANGE) {
+                        std::cout << "color error!";
+                        return 0;
+                    }
+                }
 
                 break;
             case 'o':
@@ -278,6 +282,10 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                 }
 
                 strcpy(_file_name, optarg);
+
+                break;
+            case 'h':
+                argflags.help_flag = 1;
 
                 break;
             default:
@@ -301,19 +309,23 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    BMP_File file(file_name);
-    file();
+    if (argflags.help_flag)
+        std::cout << help_info;
+    else {
+        BMP_File file(file_name);
+        file.getFileInfo()();
 
-    if (argflags.square_flag)
-        DRAW_FILE_SQUARE(file, init_square);
+        if (argflags.square_flag)
+            DRAW_FILE_SQUARE(file, init_square);
 
-    if (argflags.chrgb_flag)
-        CHANGE_FILE_RGB(file, init_chrgb);
+        if (argflags.chrgb_flag)
+            CHANGE_FILE_RGB(file, init_chrgb);
 
-    if (argflags.rotation_flag)
-        ROTATE_FILE_IMAGE(file, init_rotation);
+        if (argflags.rotation_flag)
+            ROTATE_FILE_IMAGE(file, init_rotation);
 
-    file.writeImage();
+        file.writeImage();
+    }
 
     return 0;
 }

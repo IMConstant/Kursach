@@ -48,8 +48,6 @@ void BMP_File::drawRect(COORD coord, int side, int width, __rgb color, bool pour
         return;
     }
 
-    std::cout << 1 << std::endl;
-
     for (int i = width; i >= -width; i--) {
         for (int j = -i; j < side + i; j++) {
             file_buffer[GET_YBORDER(coord.Y - i)][GET_XBORDER(coord.X + j)] =
@@ -166,6 +164,14 @@ void BMP_File::open(const char *_file_name) {
 
     fin.read(reinterpret_cast<char *>(&file_info), sizeof(File_Info));
 
+    if (file_info.header_size != 40) {
+        std::cout << "This version of BMP is not supported\n";
+        memset(&file_info, 0, sizeof(File_Info));
+        fin.close();
+
+        return;
+    }
+
     file_buffer = new __rgb *[file_info.height];
 
     for (int i = 0; i < file_info.height; i++)
@@ -185,7 +191,8 @@ void BMP_File::create(const char *_file_name) {
     *((byte *)&file_info.signature + 1) = 'M';
     file_info.file_size = 14 + 40 + 1000 * 1000 * 3;
     file_info.reserved = 0;
-    file_info.image_offset = 14 * 40;
+    file_info.image_offset = 14 + 40;
+
     file_info.header_size = 40;
     file_info.width = file_info.height = 1000;
     file_info.unit = 1;
