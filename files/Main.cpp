@@ -53,14 +53,14 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
     int res, index;
     unsigned int value, angle, side, width, offset, end = 0;
     char buffer[3] = { 0 };
-    const char *_colors[] = { "blue", "red", "green" };
+    const char *_colors[] = { "blue", "green", "red" };
 
-    argflags = { 0, 0, 0, 0, 1 };
+    argflags = { 0, 0, 0, 0, 0 };
     memset(&init_square, 0, sizeof(__init_square));
     memset(&init_chrgb, 0, sizeof(__init_chrgb));
     memset(&init_rotation, 0, sizeof(__init_rotation));
 
-    const char *short_args = "scrbeC:S:p:P:x:y:v:a:w:o:h";
+    const char *short_args = "scrbeC:S:pP:x:y:v:a:w:o:h";
     const struct option long_args[] = {
             {"square",no_argument,nullptr,'s'},
             {"chrgb",no_argument,nullptr,'c'},
@@ -81,8 +81,6 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
     };
 
     while ((res = getopt_long(_argc, _argv, short_args, long_args, &index)) != -1) {
-        argflags.help_flag = 0;
-
         if (!argflags.isActive()) {
             switch(res) {
                 case 's': //square
@@ -98,14 +96,15 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
 
                     break;
                 default:
-                    if (res == 'o' || res == 'h')
+                    if (res == 'h')
                         break;
 
                     std::cout << "You should read documentation\n";
                     return 0;
             }
 
-            continue;
+            if (res != 'h')
+		continue;
         }
 
         if (argflags.coordflags) {
@@ -275,25 +274,32 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                 }
 
                 break;
-            case 'o':
-                if (strlen(optarg) > 255) {
-                    std::cout << "File name error!\n";
-                    return 0;
-                }
-
-                strcpy(_file_name, optarg);
-
-                break;
             case 'h':
                 argflags.help_flag = 1;
 
                 break;
             default:
-                std::cout << "You should read documentation\n";
-                return 0;
+		std::cout << "You should read documentation\n";
+		return 0;
         }
 
     }
+
+    _argc -= optind;
+    _argv += optind;
+
+    std::cout << _argc << std::endl;
+
+    if (_argc != 1 && argflags.isActive()) {
+        std::cout << "File ERROR!\n";
+        return 0;
+    }
+    else if (_argc == 1)
+        strcpy(_file_name, _argv[0]);
+    else
+        strcpy(_file_name, "pict.bmp");
+
+    return 1;
 }
 
 int main(int argc, char *argv[]) {
@@ -301,8 +307,12 @@ int main(int argc, char *argv[]) {
 
     srand((unsigned)time(nullptr));
 
+    if (argc == 1) {
+        std::cout << help_info;
+        return 0;
+    }
+
     char file_name[256] = { 0 };
-    strcpy(file_name, "new.bmp");
 
     if (!ParseArgs(argc, argv, file_name)) {
         std::cout << ":(\n";
@@ -311,21 +321,20 @@ int main(int argc, char *argv[]) {
 
     if (argflags.help_flag)
         std::cout << help_info;
-    else {
-        BMP_File file(file_name);
-        file.getFileInfo()();
 
-        if (argflags.square_flag)
-            DRAW_FILE_SQUARE(file, init_square);
+    BMP_File file(file_name);
+    file.getFileInfo()();
 
-        if (argflags.chrgb_flag)
-            CHANGE_FILE_RGB(file, init_chrgb);
+    if (argflags.square_flag)
+        DRAW_FILE_SQUARE(file, init_square);
 
-        if (argflags.rotation_flag)
-            ROTATE_FILE_IMAGE(file, init_rotation);
+    if (argflags.chrgb_flag)
+        CHANGE_FILE_RGB(file, init_chrgb);
 
-        file.writeImage();
-    }
+    if (argflags.rotation_flag)
+        ROTATE_FILE_IMAGE(file, init_rotation);
+
+    file.writeImage();
 
     return 0;
 }
