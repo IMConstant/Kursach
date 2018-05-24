@@ -99,12 +99,9 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                     if (res == 'h')
                         break;
 
-                    std::cout << "You should read documentation\n";
+                    std::cout << "You should read documentation1\n";
                     return 0;
             }
-
-            if (res != 'h')
-		continue;
         }
 
         if (argflags.coordflags) {
@@ -278,9 +275,6 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
                 argflags.help_flag = 1;
 
                 break;
-            default:
-		std::cout << "You should read documentation\n";
-		return 0;
         }
 
     }
@@ -288,16 +282,12 @@ int ParseArgs(int _argc, char *_argv[], char *_file_name) {
     _argc -= optind;
     _argv += optind;
 
-    std::cout << _argc << std::endl;
-
     if (_argc != 1 && argflags.isActive()) {
-        std::cout << "File ERROR!\n";
+        std::cout << "File ERROR!";
         return 0;
     }
     else if (_argc == 1)
         strcpy(_file_name, _argv[0]);
-    else
-        strcpy(_file_name, "pict.bmp");
 
     return 1;
 }
@@ -309,10 +299,16 @@ int main(int argc, char *argv[]) {
 
     if (argc == 1) {
         std::cout << help_info;
-        return 0;
+        //return 0;
     }
 
     char file_name[256] = { 0 };
+
+    BMP_File file("file.bmp");
+    std::cout << 222222;
+    file.ConvertToColorTable();
+    file.getFileInfo()();
+    return 0;
 
     if (!ParseArgs(argc, argv, file_name)) {
         std::cout << ":(\n";
@@ -322,19 +318,21 @@ int main(int argc, char *argv[]) {
     if (argflags.help_flag)
         std::cout << help_info;
 
-    BMP_File file(file_name);
-    file.getFileInfo()();
+    if (argflags.isActive()){
+        BMP_File file(file_name);
+        file.getFileInfo()();
 
-    if (argflags.square_flag)
-        DRAW_FILE_SQUARE(file, init_square);
+        if (argflags.square_flag)
+            DRAW_FILE_SQUARE(file, init_square);
 
-    if (argflags.chrgb_flag)
-        CHANGE_FILE_RGB(file, init_chrgb);
+        if (argflags.chrgb_flag)
+            CHANGE_FILE_RGB(file, init_chrgb);
 
-    if (argflags.rotation_flag)
-        ROTATE_FILE_IMAGE(file, init_rotation);
+        if (argflags.rotation_flag)
+            ROTATE_FILE_IMAGE(file, init_rotation);
 
-    file.writeImage();
+        file.writeImage();
+    }
 
     return 0;
 }

@@ -25,7 +25,8 @@ struct File_Info {
     unsigned int   image_size;
     unsigned int   gres;
     unsigned int   vres;
-    unsigned long  mus;
+    unsigned int   capacity;
+    unsigned int   table_size;
 
     void operator()() {
         std::cout << "signature     " << std::hex << signature    << " " << std::dec << signature    << std::endl;
@@ -41,7 +42,7 @@ struct File_Info {
         std::cout << "image_size    " << std::hex << image_size   << " " << std::dec << image_size   << std::endl;
         std::cout << "gres          " << std::hex << gres         << " " << std::dec << gres         << std::endl;
         std::cout << "vres          " << std::hex << vres         << " " << std::dec << vres         << std::endl;
-        std::cout << "mus           " << std::hex << mus          << " " << std::dec << mus          << std::endl;
+        std::cout << "capacity      " << std::hex << capacity     << " " << std::dec << capacity     << std::endl;
     }
 };
 
@@ -57,6 +58,11 @@ struct __rgb {
     byte g;
     byte r;
 };
+
+typedef struct ColorTableElement {
+    __rgb color;
+    byte  reserved;
+} ColorTableElement, *ColorTable;
 
 #pragma pack(pop)
 
@@ -80,6 +86,7 @@ static const char *help_info = "Выбор основного действия:\
 class BMP_File {
     friend int isValidCoord(BMP_File *file, COORD lc, COORD rc);
     friend int isValidCoord(BMP_File *file, COORD crd);
+    friend byte GetColorPos(__rgb color, ColorTable color_table);
 public:
     explicit BMP_File(const char *_file_name = nullptr);
     ~BMP_File();
@@ -92,6 +99,7 @@ public:
     void ImageRotation(COORD lcoord, COORD rcoord, int angle);
     void writeImage();
     void RGBChange(int offset, byte value);
+    void ConvertToColorTable();
 private:
     mutable __rgb **file_buffer;
     File_Info       file_info;

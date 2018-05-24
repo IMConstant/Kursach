@@ -22,6 +22,22 @@ int isValidCoord(BMP_File *file, COORD crd) {
         return 0;
 }
 
+bool operator==(__rgb a, __rgb b) {
+    return a.b == b.b && a.g == b.g && a.r == b.r;
+}
+
+byte GetColorPos(__rgb color, ColorTable color_table) {
+    static int size = 0;
+
+    for (int i = 0; i < size; i++)
+        if (color_table[i].color == color)
+            return i;
+
+    color_table[size++].color = color;
+
+    return (size - 1);
+}
+
 BMP_File::BMP_File(const char *_file_name) {
     file_buffer = nullptr;
     memset(&file_info, 0, sizeof(File_Info));
@@ -198,10 +214,10 @@ void BMP_File::create(const char *_file_name) {
     file_info.unit = 1;
     file_info.color_depth = 24;
     file_info.compression = 0;
-    file_info.image_size = 1000 * 1000;
     file_info.gres = 2795;
     file_info.vres = 2795;
-    file_info.mus = 0;
+    file_info.capacity = 0;
+    file_info.table_size = 0;
 
     fout.write(reinterpret_cast<const char *>(&file_info), sizeof(File_Info));
 
@@ -211,4 +227,43 @@ void BMP_File::create(const char *_file_name) {
         file_buffer[i] = new __rgb[file_info.width];
 
     fout.close();
+}
+
+void BMP_File::ConvertToColorTable() {
+    std::ofstream _8BitFile("special_test.bmp", std::ios::out | std::ios::binary);
+
+    File_Info _8BitInfo = file_info;
+    ColorTable color_table = new ColorTableElement[_8BitInfo.capacity];
+    byte *OutBuffer = new byte[_8BitInfo.width];
+
+    memset(color_table, 0, _8BitInfo.capacity);
+
+    _8BitInfo.color_depth = 8;
+    _8BitInfo.capacity = 256;
+    _8BitInfo.image_offset = 14 + 40 + 256 * 4;
+    _8BitInfo.file_size = 14 + 40 + 256 * 4 + file_info.height * file_info.width;
+
+    _8BitFile.write(reinterpret_cast<const char *>(&_8BitInfo), sizeof(File_Info));
+
+    for (int i = 0; i < _8BitInfo.height; i++)
+        for (int j = 0; j < _8BitInfo.width; j++)
+            GetColorPos(file_buffer[i][j], color_table);
+
+    _8BitFile.write(reinterpret_cast<const char *>(color_table), _8BitInfo.capacity);
+
+    _8BitFile.seekp(_8BitInfo.image_offset, _8BitFile.beg);
+
+    for (int i = _8BitInfo.height - 1; i >= 0; i--) {
+        for (int j = 0; j < _8BitInfo.width; j++) {
+            OutBuffer[j] = GetColorPos(file_buffer[i][j], color_table);
+        }
+
+        _8BitFile.write(reinterpret_cast<const char *>(OutBuffer), _8BitInfo.width);
+        _8BitFile.write(reinterpret_cast<const char *>(mass), (3 * _8BitInfo.width) % 4);
+    }
+
+    delete [] color_table;
+    delete [] OutBuffer;
+
+    _8BitFile.close();
 }
